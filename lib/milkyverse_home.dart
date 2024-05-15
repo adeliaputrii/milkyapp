@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milkyapp/base/base_colors.dart' as baseColors;
 import 'package:milkyapp/milkyverse_emoney.dart';
 import 'package:milkyapp/utlis/animation/fadeimage.dart';
-import 'package:milkyapp/utlis/animation/slidetext.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:tbib_splash_screen/splash_screen_view.dart';
-import 'package:flutter_svg_provider/flutter_svg_provider.dart';
 
 
 class Home extends StatefulWidget {
@@ -138,6 +135,10 @@ class _HomeState extends State<Home> {
                         height: 1,
                         child: MobileScanner(
                         controller: _controller,
+                        overlayBuilder: (context, constraints) {
+                        // Mengembalikan widget kosong sebagai overlay
+                        return SizedBox.expand();
+                      },
                         onDetect: _handleBarcode,
                         ),
                       ),
