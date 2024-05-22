@@ -44,10 +44,14 @@ class _HomeState extends State<Home> {
 
    _buildBarcode(Barcode? value) {
     if (value == null) {
-      return 'Welcome to Milkyverse';
+      return 'Scan here';
+    } else {
+      if (_barcodeString == '4983164889086') {
+        return 'Welcome to Milkyverse';
+      } else {
+        return 'Kartu belum diintegrasi';
+      }
     }
-    return
-      value.displayValue ?? 'No display value.';
   }
 
   void _handleBarcode(BarcodeCapture barcodes) {
@@ -55,13 +59,15 @@ class _HomeState extends State<Home> {
       setState(() {
         _barcode = barcodes.barcodes.firstOrNull;
         _barcodeString = _barcode!.rawValue;
-        if (_barcode != null) {
-          _controller.stop();  // Stop the scanner after detecting a barcode
-        }
+        // if (_barcode != null) {
+        //   _controller.stop();  // Stop the scanner after detecting a barcode
+        // }
+      // _buildBarcode(_barcode);
       });
-      Navigator.push(context, MaterialPageRoute(builder: (context){
-        return DetailCard(data:_barcodeString!);
-      }));
+      _buildBarcode(_barcode);
+      // Navigator.push(context, MaterialPageRoute(builder: (context){
+      //   return DetailCard(data:_barcodeString!);
+      // }));
       print('widget data${_barcodeString}');
     }
   }
