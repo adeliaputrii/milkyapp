@@ -7,6 +7,7 @@ import 'package:milkyapp/utlis/animation/fadeimage.dart';
 import 'package:milkyapp/utlis/animation/slidetext.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nfc_manager/nfc_manager.dart';
+import 'package:nfc_manager/platform_tags.dart';
 import 'package:tbib_splash_screen/splash_screen_view.dart';
 import 'package:flutter_svg_provider/flutter_svg_provider.dart';
 
@@ -27,20 +28,19 @@ class _HomeState extends State<Home> {
 
   void _readNfcTag() {
   NfcManager.instance.startSession(onDiscovered: (NfcTag badge) async {
-    var ndef = Ndef.from(badge);
-    if (ndef != null && ndef.cachedMessage != null) {
-      String tempRecord = "";
-      for (var record in ndef.cachedMessage!.records) {
-        tempRecord ="$tempRecord ${String.fromCharCodes(record.payload.sublist(record.payload[0] + 1))}";
+    print("nfc : ${badge.data}");
+
+      var mifareclassic = MifareClassic.from(badge);
+      if(mifareclassic != null && mifareclassic.identifier != null){
+        setState(() {
+          _readFromNfcTag = mifareclassic.identifier.toString();
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return DetailCard(data:_readFromNfcTag);
+          }));
+        });
+      }else{
+        print("Card is not define");
       }
-      setState(() {
-        _readFromNfcTag = tempRecord;
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return DetailCard(data:_readFromNfcTag);
-        }));
-      });
-    } else {
-    }
     NfcManager.instance.stopSession();
   });
   }
@@ -87,21 +87,20 @@ class _HomeState extends State<Home> {
     return FutureBuilder(
       future: NfcManager.instance.isAvailable(),
       builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.waiting) {
-          debugPrint('NFC Waiting');
-        } else if (snapshot.hasError) {
-          debugPrint('${snapshot.error}');
-        }
-        else {
-        if (snapshot.data == false) {
-          debugPrint('NFC Not Available');
-        } else {
-          debugPrint('NFCAvailable');
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-          _readNfcTag();
-        });
-        }
-        }
+        // if(snapshot.connectionState == ConnectionState.waiting) {
+        //   print('NFC Waiting');
+        // } else if (snapshot.hasError) {
+        //   print('${snapshot.error}');
+        // } else {
+          if (snapshot.data == false) {
+            print('NFC Not Available');
+          } else {
+            print('NFCAvailable');
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+              _readNfcTag();
+            });
+          }
+        // }
         return Scaffold(
           body: Container(
             height: screenHeight,
