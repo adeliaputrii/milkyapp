@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milkyapp/base/base_colors.dart' as baseColors;
 import 'package:milkyapp/milkyverse_home.dart';

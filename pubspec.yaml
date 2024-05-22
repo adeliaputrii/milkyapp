@@ -41,9 +41,9 @@ dependencies:
   relative_scale: ^2.0.0
   responsive_framework: ^0.2.0
   nfc_manager: ^3.4.0
-  flutter_svg: ^2.0.10+1
-  flutter_svg_provider: ^1.0.7
   mobile_scanner: ^5.1.0
+  native_id: ^0.0.3
+  device_info_plus: ^9.0.3
 
 dev_dependencies:
   flutter_test:

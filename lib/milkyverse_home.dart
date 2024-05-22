@@ -1,9 +1,13 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:milkyapp/base/base_colors.dart' as baseColors;
 import 'package:milkyapp/milkyverse_emoney.dart';
 import 'package:milkyapp/utlis/animation/fadeimage.dart';
+import 'package:milkyapp/utlis/animation/slidetext.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:native_id/native_id.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:nfc_manager/platform_tags.dart';
 import 'package:tbib_splash_screen/splash_screen_view.dart';
@@ -19,9 +23,12 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final MobileScannerController _controller = MobileScannerController();
   String data = 'TESTER';
-  String _readFromNfcTag = "";
   Barcode? _barcode;
-  String? _barcodeString;
+  String? value;
+  String _nativeId = 'Unknown';
+  String _device = '';
+  final _nativeIdPlugin = NativeId();
+  DeviceInfoPlugin devicePlugin = DeviceInfoPlugin();
 
   void _readNfcTag() {
   NfcManager.instance.startSession(onDiscovered: (NfcTag badge) async {
@@ -30,10 +37,11 @@ class _HomeState extends State<Home> {
       var mifareclassic = MifareClassic.from(badge);
       if(mifareclassic != null && mifareclassic.identifier != null){
         setState(() {
-          _readFromNfcTag = mifareclassic.identifier.toString();
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return DetailCard(data:_readFromNfcTag);
-          }));
+          // value = badge.data["id"];
+          value = mifareclassic.identifier.toString();
+          // Navigator.push(context, MaterialPageRoute(builder: (context) {
+          //   return DetailCard(data: value!);
+          // }));
         });
       }else{
         print("Card is not define");
@@ -42,34 +50,44 @@ class _HomeState extends State<Home> {
   });
   }
 
-   _buildBarcode(Barcode? value) {
+   _buildBarcode(String? value) {
     if (value == null) {
-      return 'Scan here';
+      return 'Scan Here';
     } else {
-      if (_barcodeString == '4983164889086') {
-        return 'Welcome to Milkyverse';
-      } else {
-        return 'Kartu belum diintegrasi';
-      }
+      return 'Welcome to Milkyverse';
     }
+    
   }
 
   void _handleBarcode(BarcodeCapture barcodes) {
     if (mounted) {
       setState(() {
         _barcode = barcodes.barcodes.firstOrNull;
-        _barcodeString = _barcode!.rawValue;
-        // if (_barcode != null) {
-        //   _controller.stop();  // Stop the scanner after detecting a barcode
-        // }
-      // _buildBarcode(_barcode);
+        value = _barcode!.rawValue;
       });
-      _buildBarcode(_barcode);
       // Navigator.push(context, MaterialPageRoute(builder: (context){
-      //   return DetailCard(data:_barcodeString!);
+      //   return DetailCard(data:value!);
       // }));
-      print('widget data${_barcodeString}');
     }
+  }
+
+  Future<void> initPlatformState() async {
+    String nativeId;
+    AndroidDeviceInfo info = await devicePlugin.androidInfo;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    // We also handle the message potentially returning null.
+    try {
+      nativeId = await _nativeIdPlugin.getId() ?? 'Unknown NATIVE_ID';
+    } on PlatformException {
+      nativeId = 'Failed to get native id.';
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _nativeId = nativeId;
+      _device = '${info.device}';
+    });
   }
 
   @override
@@ -81,6 +99,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    initPlatformState();
   }
 
   @override
@@ -105,70 +124,94 @@ class _HomeState extends State<Home> {
           }
         // }
         return Scaffold(
-          body: Container(
-            height: screenHeight,
-            width: screenWidth,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  baseColors.primaryColor, 
-                  Colors.black
+          body: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                height: screenHeight,
+                width: screenWidth,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      baseColors.primaryColor, 
+                      Colors.black
+                      ],
+                    ),
+                  ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(
+                        top: screenHeight / 30,
+                        left: screenWidth / 30
+                      ),
+                      width: screenWidth,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          FadeInImageWidget(
+                            imageUrl: 'assets/logo.png', 
+                            height: screenHeight / 8.5, 
+                            width: screenWidth / 4
+                            ),
+                          Container(
+                          height: 1,
+                          child: MobileScanner(
+                          controller: _controller,
+                          overlayBuilder: (context, constraints) {
+                          // Mengembalikan widget kosong sebagai overlay
+                          return SizedBox.expand();
+                          },
+                          onDetect: _handleBarcode,
+                          ),
+                        ),
+                        ],
+                      ),
+                    ),
+                    AnimatedTextKit( 
+                      repeatForever: true, 
+                      animatedTexts: [ 
+                        FlickerAnimatedText('${_buildBarcode(value)}',
+                          speed: Duration(seconds: 1), 
+                          textStyle: GoogleFonts.orbitron(
+                            fontSize: screenWidth/17,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            ),
+                          ),
+                          FlickerAnimatedText(
+                          value == null ? '' : '${value}',
+                          speed: Duration(seconds: 1), 
+                          textStyle: GoogleFonts.orbitron(
+                            fontSize: screenWidth/17,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            ),
+                          ),
+                          ],
+                        ),
+                    Container(),
+                    Container(
+                      margin: EdgeInsets.only(bottom: 50),
+                      child: Text('${_nativeId}${_device}',
+                      style: GoogleFonts.poppins(
+                        fontSize: screenWidth/30,
+                        color: Colors.white,
+                      ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(
-                    top: screenHeight / 30,
-                    left: screenWidth / 30
-                  ),
-                  width: screenWidth,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      FadeInImageWidget(
-                        imageUrl: 'assets/logo.png', 
-                        height: screenHeight / 8.5, 
-                        width: screenWidth / 4
-                        ),
-                      Container(
-                        height: 1,
-                        child: MobileScanner(
-                        controller: _controller,
-                        overlayBuilder: (context, constraints) {
-                        // Mengembalikan widget kosong sebagai overlay
-                        return SizedBox.expand();
-                      },
-                        onDetect: _handleBarcode,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                AnimatedTextKit( 
-                  repeatForever: true, 
-                  animatedTexts: [ 
-                    FlickerAnimatedText('${_buildBarcode(_barcode)}',
-                      speed: Duration(seconds: 1), 
-                      textStyle: GoogleFonts.orbitron(
-                        fontSize: screenWidth/17,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        ),
-                      ),
-                      ],
-                    ),
-                FadeInImageWidget(
-                  imageUrl: 'assets/background.png', 
-                  height: screenWidth / 2.1,
-                  width: screenWidth)
-              ],
-            ),
+            FadeInImageWidget(
+            imageUrl: 'assets/background.png', 
+            height: screenWidth / 2.1,
+            width: screenWidth)
+            ],
           ),
         );
       }
