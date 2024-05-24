@@ -24,6 +24,7 @@ class _HomeState extends State<Home> {
   final MobileScannerController _controller = MobileScannerController();
   String data = 'TESTER';
   Barcode? _barcode;
+  String? _readNfcTagString;
   String? value;
   String _nativeId = 'Unknown';
   String _device = '';
@@ -33,21 +34,17 @@ class _HomeState extends State<Home> {
   void _readNfcTag() {
   NfcManager.instance.startSession(onDiscovered: (NfcTag badge) async {
     print("nfc : ${badge.data}");
-
-      var mifareclassic = MifareClassic.from(badge);
-      if(mifareclassic != null && mifareclassic.identifier != null){
-        setState(() {
-          // value = badge.data["id"];
-          value = mifareclassic.identifier.toString();
-          // Navigator.push(context, MaterialPageRoute(builder: (context) {
-          //   return DetailCard(data: value!);
-          // }));
-        });
-      }else{
-        print("Card is not define");
-      }
+    var mifareclassic = MifareClassic.from(badge);
+    if(mifareclassic != null && mifareclassic.identifier != null){
+      setState(() {
+        _readNfcTagString = mifareclassic.identifier.toString();
+        value = _cleanArray(_readNfcTagString!);
+      });
+    }else{
+      print("Card is not define");
+    }
     NfcManager.instance.stopSession();
-  });
+    });
   }
 
    _buildBarcode(String? value) {
@@ -56,7 +53,6 @@ class _HomeState extends State<Home> {
     } else {
       return 'Welcome to Milkyverse';
     }
-    
   }
 
   void _handleBarcode(BarcodeCapture barcodes) {
@@ -65,25 +61,28 @@ class _HomeState extends State<Home> {
         _barcode = barcodes.barcodes.firstOrNull;
         value = _barcode!.rawValue;
       });
-      // Navigator.push(context, MaterialPageRoute(builder: (context){
-      //   return DetailCard(data:value!);
-      // }));
     }
+  }
+
+  String _cleanArray(String readTag) {
+    String cleanedString = readTag.replaceAll('[', '').replaceAll(']', '');
+    // Split the string by commas
+    List<String> stringList = cleanedString.split(',');
+    // Join the list into a single string
+    String result = stringList.join();
+    print(result); 
+    return result;
   }
 
   Future<void> initPlatformState() async {
     String nativeId;
     AndroidDeviceInfo info = await devicePlugin.androidInfo;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
     try {
       nativeId = await _nativeIdPlugin.getId() ?? 'Unknown NATIVE_ID';
     } on PlatformException {
       nativeId = 'Failed to get native id.';
     }
-
     if (!mounted) return;
-
     setState(() {
       _nativeId = nativeId;
       _device = '${info.device}';
@@ -100,6 +99,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     initPlatformState();
+    print(_cleanArray('[22,33,44,55,66]'));
   }
 
   @override
@@ -109,20 +109,6 @@ class _HomeState extends State<Home> {
     return FutureBuilder(
       future: NfcManager.instance.isAvailable(),
       builder: (context, snapshot) {
-        // if(snapshot.connectionState == ConnectionState.waiting) {
-        //   print('NFC Waiting');
-        // } else if (snapshot.hasError) {
-        //   print('${snapshot.error}');
-        // } else {
-          if (snapshot.data == false) {
-            print('NFC Not Available');
-          } else {
-            print('NFCAvailable');
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-              _readNfcTag();
-            });
-          }
-        // }
         return Scaffold(
           body: Stack(
             alignment: Alignment.bottomCenter,
@@ -190,10 +176,10 @@ class _HomeState extends State<Home> {
                             fontSize: screenWidth/17,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
-                            ),
                           ),
-                          ],
                         ),
+                      ],
+                    ),
                     Container(),
                     Container(
                       margin: EdgeInsets.only(bottom: 50),
