@@ -1,24 +1,60 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:milkyapp/base/base_colors.dart' as baseColors;
 import 'package:milkyapp/milkyverse_home.dart';
 import 'package:milkyapp/utlis/animation/fadeimage.dart';
 import 'package:milkyapp/utlis/animation/slidetext.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:native_id/native_id.dart';
 import 'package:nfc_manager/nfc_manager.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tbib_splash_screen/splash_screen_view.dart';
 
 class DetailCard extends StatefulWidget {
-  final String data;
+  final String value;
   const DetailCard({
     super.key,
-    required this.data
+    required this.value
     });
 
 @override
 State<DetailCard> createState() => _DetailCardState();
 }
 class _DetailCardState extends State<DetailCard> {
+  String formattedDate = DateFormat('d MMMM yyyy').format(DateTime.now());
+  String _nativeId = 'Unknown';
+  String _device = '';
+  String _appVersion = '';
+  final _nativeIdPlugin = NativeId();
+  DeviceInfoPlugin devicePlugin = DeviceInfoPlugin();
+
+  Future<void> initPlatformState() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    _appVersion = packageInfo.version;
+    String nativeId;
+    AndroidDeviceInfo info = await devicePlugin.androidInfo;
+    try {
+      nativeId = await _nativeIdPlugin.getId() ?? 'Unknown NATIVE_ID';
+    } on PlatformException {
+      nativeId = 'Failed to get native id.';
+    }
+    if (!mounted) return;
+    setState(() {
+      _nativeId = nativeId;
+      _device = '${info.device}';
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    initPlatformState();
+  }
+  
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -33,7 +69,14 @@ class _DetailCardState extends State<DetailCard> {
               height: screenHeight,
               width: screenWidth,
               decoration: BoxDecoration(
-                color: baseColors.primaryColor,
+                gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  baseColors.primaryColor, 
+                  Colors.black
+                  ],
+                ),
               ),
               child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -66,17 +109,14 @@ class _DetailCardState extends State<DetailCard> {
                     ],
                     ),
                     Container(
-                    margin: EdgeInsets.only(
-                      top: screenHeight/25,
-                      bottom: screenHeight/50
-                    ),
+                    margin: EdgeInsets.only(bottom: screenHeight/40),
                     child: FadeInImageWidget(
                     height: screenWidth/4.5,
                     width: screenWidth/4.5,
                     imageUrl: 'assets/logo.png',
                     ),
                     ),
-                    Text('Detail e-money',
+                    Text('Welcome to Milkyverse',
                     style: GoogleFonts.poppins(
                     fontSize: screenWidth/20,
                     color: baseColors.tertiaryColor,
@@ -85,9 +125,9 @@ class _DetailCardState extends State<DetailCard> {
                     Container(
                     margin: EdgeInsets.fromLTRB(
                     20,
-                    screenHeight/20,
+                    screenHeight/25,
                     20, 
-                    screenHeight/45
+                    screenHeight/70
                     ),
                     height: screenHeight/13,
                     decoration: BoxDecoration(
@@ -99,24 +139,24 @@ class _DetailCardState extends State<DetailCard> {
                       Padding(
                       padding: const EdgeInsets.only(
                       left: 20,
-                      right: 30
+                      right: 20
                       ),
                       child: FadeInImageWidget(
-                        imageUrl: 'assets/debitIcon.png', 
-                        height: screenWidth/13, 
-                        width: screenWidth/15),
+                        imageUrl: 'assets/dateIcon.png', 
+                        height: screenWidth/10, 
+                        width: screenWidth/10),
                       ),
                       Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('ID Card',
+                        Text('Date',
                         style: GoogleFonts.poppins(
                           fontSize: screenWidth/30,
                           color: Colors.grey,
                         ),
                         ),
-                        Text('${widget.data}',
+                        Text('${formattedDate}',
                         style: GoogleFonts.poppins(
                           fontSize: screenWidth/30,
                           color: Colors.black,
@@ -132,7 +172,7 @@ class _DetailCardState extends State<DetailCard> {
                       20,
                       0,
                       20, 
-                      screenHeight/45
+                      screenHeight/70
                       ),
                       height: screenHeight/13,
                       decoration: BoxDecoration(
@@ -144,24 +184,24 @@ class _DetailCardState extends State<DetailCard> {
                           Padding(
                           padding: const EdgeInsets.only(
                           left: 20,
-                          right: 30
+                          right: 20
                           ),
                           child: FadeInImageWidget(
-                          imageUrl: 'assets/profilIcon.png', 
-                          height: screenWidth/13, 
-                          width: screenWidth/13),
+                          imageUrl: 'assets/cardIcon.png', 
+                          height: screenWidth/10, 
+                          width: screenWidth/10),
                           ),
                           Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Name',
+                            Text('Device ID',
                             style: GoogleFonts.poppins(
                               fontSize: screenWidth/30,
                               color: Colors.grey,
                               ),
                             ),
-                            Text('Adhelia Putri Wardhana',
+                            Text('${_nativeId}${_device}',
                             style: GoogleFonts.poppins(
                               fontSize: screenWidth/30,
                               color: Colors.black,
@@ -170,6 +210,51 @@ class _DetailCardState extends State<DetailCard> {
                             ],
                           )
                           ],
+                        ),
+                      ),
+                      Container(
+                      margin: EdgeInsets.fromLTRB(
+                      20,
+                      0,
+                      20, 
+                      screenHeight/70
+                      ),
+                      height: screenHeight/13,
+                      decoration: BoxDecoration(
+                        color: baseColors.tertiaryColor,
+                        borderRadius: BorderRadius.circular(20)
+                      ),
+                      child: Row(
+                      children: [
+                        Padding(
+                        padding: const EdgeInsets.only(
+                        left: 20,
+                        right: 20
+                        ),
+                        child: FadeInImageWidget(
+                          imageUrl: 'assets/deviceIcon.png', 
+                          height: screenWidth/10, 
+                          width: screenWidth/10),
+                        ),
+                        Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('ID Card',
+                           style: GoogleFonts.poppins(
+                            fontSize: screenWidth/30,
+                            color: Colors.grey,
+                           ),
+                                ),
+                          Text('${widget.value ?? 'Unknown'}',
+                          style: GoogleFonts.poppins(
+                            fontSize: screenWidth/30,
+                            color: Colors.black,
+                            ),
+                          ),
+                          ],
+                          )
+                        ],
                         ),
                       ),
                       Container(
@@ -189,24 +274,24 @@ class _DetailCardState extends State<DetailCard> {
                         Padding(
                         padding: const EdgeInsets.only(
                         left: 20,
-                        right: 30
+                        right: 20
                         ),
                         child: FadeInImageWidget(
-                          imageUrl: 'assets/saldoIcon.png', 
-                          height: screenWidth/13, 
-                          width: screenWidth/13),
+                          imageUrl: 'assets/versionIcon.png', 
+                          height: screenWidth/10, 
+                          width: screenWidth/10),
                         ),
                         Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Saldo',
+                          Text('Version',
                            style: GoogleFonts.poppins(
                             fontSize: screenWidth/30,
                             color: Colors.grey,
                            ),
                                 ),
-                          Text('Rp. 20.000.000',
+                          Text('${_appVersion}',
                           style: GoogleFonts.poppins(
                             fontSize: screenWidth/30,
                             color: Colors.black,

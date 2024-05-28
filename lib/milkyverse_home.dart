@@ -39,6 +39,10 @@ class _HomeState extends State<Home> {
       setState(() {
         _readNfcTagString = mifareclassic.identifier.toString();
         value = _cleanArray(_readNfcTagString!);
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return DetailCard(value: '${value}',);
+        }
+        ));
       });
     }else{
       print("Card is not define");
@@ -60,7 +64,11 @@ class _HomeState extends State<Home> {
       setState(() {
         _barcode = barcodes.barcodes.firstOrNull;
         value = _barcode!.rawValue;
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return DetailCard(value: '${value}');
+      }));
       });
+      _controller.stop();
     }
   }
 
@@ -109,6 +117,20 @@ class _HomeState extends State<Home> {
     return FutureBuilder(
       future: NfcManager.instance.isAvailable(),
       builder: (context, snapshot) {
+        if(snapshot.connectionState == ConnectionState.waiting) {
+          debugPrint('NFC Waiting');
+        } else if(snapshot.hasError) {
+          debugPrint('${snapshot.error}');
+        } else {
+          if(snapshot.data == false) {
+            debugPrint('NFC Not Available');
+          } else {
+            debugPrint('NFC Available');
+            WidgetsBinding.instance.addPostFrameCallback((_){
+              _readNfcTag();
+            });
+          }
+        }
         return Scaffold(
           body: Stack(
             alignment: Alignment.bottomCenter,
@@ -161,23 +183,14 @@ class _HomeState extends State<Home> {
                     AnimatedTextKit( 
                       repeatForever: true, 
                       animatedTexts: [ 
-                        FlickerAnimatedText('${_buildBarcode(value)}',
-                          speed: Duration(seconds: 1), 
+                        FlickerAnimatedText('Scan Here',
+                          speed: Duration(seconds: 2), 
                           textStyle: GoogleFonts.orbitron(
                             fontSize: screenWidth/17,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                             ),
                           ),
-                          FlickerAnimatedText(
-                          value == null ? '' : '${value}',
-                          speed: Duration(seconds: 1), 
-                          textStyle: GoogleFonts.orbitron(
-                            fontSize: screenWidth/17,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
                       ],
                     ),
                     Container(),
