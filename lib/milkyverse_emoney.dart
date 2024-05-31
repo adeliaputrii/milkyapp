@@ -24,7 +24,7 @@ class DetailCard extends StatefulWidget {
 State<DetailCard> createState() => _DetailCardState();
 }
 class _DetailCardState extends State<DetailCard> {
-  String formattedDate = DateFormat('d MMMM yyyy').format(DateTime.now());
+  String formattedDate = DateFormat('d MMMM yyyy HH:mm:ss').format(DateTime.now());
   String _nativeId = 'Unknown';
   String _device = '';
   String _appVersion = '';
@@ -109,17 +109,18 @@ class _DetailCardState extends State<DetailCard> {
                     ],
                     ),
                     Container(
-                    margin: EdgeInsets.only(bottom: screenHeight/40),
+                    margin: EdgeInsets.only(top: screenHeight/15,bottom: screenHeight/40),
                     child: FadeInImageWidget(
                     height: screenWidth/4.5,
                     width: screenWidth/4.5,
                     imageUrl: 'assets/logo.png',
                     ),
                     ),
-                    Text('Welcome to Milkyverse',
-                    style: GoogleFonts.poppins(
-                    fontSize: screenWidth/20,
-                    color: baseColors.tertiaryColor,
+                    Text('Milkyverse Gate Ticket',
+                    style: GoogleFonts.orbitron(
+                      fontSize: screenWidth/19,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                       ),
                     ),
                     Container(
@@ -150,7 +151,7 @@ class _DetailCardState extends State<DetailCard> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Date',
+                        Text('Date & Time',
                         style: GoogleFonts.poppins(
                           fontSize: screenWidth/30,
                           color: Colors.grey,
@@ -257,86 +258,18 @@ class _DetailCardState extends State<DetailCard> {
                         ],
                         ),
                       ),
-                      Container(
-                      margin: EdgeInsets.fromLTRB(
-                      20,
-                      0,
-                      20, 
-                      screenHeight/20
-                      ),
-                      height: screenHeight/13,
-                      decoration: BoxDecoration(
-                        color: baseColors.tertiaryColor,
-                        borderRadius: BorderRadius.circular(20)
-                      ),
-                      child: Row(
-                      children: [
-                        Padding(
-                        padding: const EdgeInsets.only(
-                        left: 20,
-                        right: 20
-                        ),
-                        child: FadeInImageWidget(
-                          imageUrl: 'assets/versionIcon.png', 
-                          height: screenWidth/10, 
-                          width: screenWidth/10),
-                        ),
-                        Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Version',
-                           style: GoogleFonts.poppins(
-                            fontSize: screenWidth/30,
-                            color: Colors.grey,
-                           ),
-                                ),
-                          Text('${_appVersion}',
-                          style: GoogleFonts.poppins(
-                            fontSize: screenWidth/30,
-                            color: Colors.black,
-                            ),
-                          ),
-                          ],
-                          )
-                        ],
-                        ),
-                      ),
                     ]
                   ),
                 Container(
                 margin: const EdgeInsets.only(
                 bottom: 50
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Copyright RALS',
-                    style: GoogleFonts.poppins(
-                      fontSize: screenWidth/30,
-                      color: Colors.white,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                      Navigator.pushAndRemoveUntil(context, 
-                      MaterialPageRoute(builder: (context){
-                      return Home();
-                      }), (route) => false);
-                      }, 
-                      icon: Icon(Icons.copyright_outlined,
-                      size: screenWidth/30,
-                      color: Colors.white,
-                      ),
-                      ),
-                    Text('2024',
-                      style: GoogleFonts.poppins(
-                      fontSize: screenWidth/30,
-                      color: Colors.white,
-                    ),
-                    ),
-                  ],
+                child: Text('Version ${_appVersion}',
+                style: GoogleFonts.poppins(
+                  fontSize: screenWidth/30,
+                  color: Colors.white,
                   ),
+                ),
                 ),
               ],
               ),

@@ -46,6 +46,8 @@ dependencies:
   device_info_plus: ^9.0.3
   intl: ^0.17.0
   package_info_plus: ^4.1.0
+  connectivity_plus: ^2.3.2
+  internet_connection_checker: ^0.0.1+4
 
 dev_dependencies:
   flutter_test:
